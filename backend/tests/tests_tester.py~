@@ -1,0 +1,15 @@
+import unittest
+import Tester
+
+
+class TestTester(unittest.TestCase):
+
+    def test_tester(self):
+        tester = Tester.Tester("/Users/nalshahwan/ffep/examplesAl/file3a.pre.c","func",[[5,2]])
+        self.assertEqual(tester.testFunction(),2)
+
+    @staticmethod
+    def suite():
+        suite = unittest.TestSuite()
+        suite.addTest(TestModelController('test_tester'))
+        return suite

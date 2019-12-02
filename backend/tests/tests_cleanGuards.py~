@@ -1,0 +1,17 @@
+import unittest
+import CleanGuards
+
+
+class TestCleanGuards(unittest.TestCase):
+
+    def test_cleanGuards(self):
+        cleaner = CleanGuards.CleanGuards("/Users/nalshahwan/ffep/examplesAl/file3a.pre.c.output.guards.complex.cvc")
+        cleaner.setFormulas()
+        formulas=cleaner.getTranslation()
+        self.assertEqual(formulas,10)
+
+    @staticmethod
+    def suite():
+        suite = unittest.TestSuite()
+        suite.addTest(TestCleanGuards('test_cleanGuards'))
+        return suite

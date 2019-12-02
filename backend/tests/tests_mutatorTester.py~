@@ -1,0 +1,20 @@
+import unittest
+import Mutator
+import Tester
+
+class TestMutator(unittest.TestCase):
+
+    def test_mutation(self):
+        mutator = Mutator.Mutator("/Users/nalshahwan/ffep/examplesAl/file4.c","func",1)
+        mutator.mutate(10)
+        mut=mutator.getMutants()
+        tester = Tester.Tester("/Users/nalshahwan/ffep/examplesAl/file4.c","func",[5,2])
+        tester
+        tester.testFunction()
+        self.assertEqual(len(mut),10)
+
+    @staticmethod
+    def suite():
+        suite = unittest.TestSuite()
+        suite.addTest(TestModelController('test_mutation'))
+        return suite
