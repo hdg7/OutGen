@@ -5,7 +5,7 @@ import os
 
 sys.path.append(os.environ["EURY_HOME"])
 
-from backend.visitors.cVisitors.AssertVisitor import AssertVisitor
+from backend.visitors.cVisitors.OutputVisitor import OutputVisitor
 import backend.generator.InputGenerator as InputGenerator
 import backend.support.functions as functions
 import backend.evaluators.UniformComparator as UniformComparator
@@ -14,7 +14,6 @@ from pycparser import parse_file,c_generator
 
 filename=sys.argv[1]
 functionName=sys.argv[2]
-line=int(sys.argv[3])
 gen=c_generator.CGenerator()
 
 print(filename)
@@ -33,23 +32,18 @@ if functionName == 'main':
 print(filename)
 print(functionName)
 
-visitor=AssertVisitor()
+visitor=OutputVisitor()
 
 inputGen=InputGenerator.InputGenerator(filename,functionName)
-visitor.instrument(inputGen.target,line)
-if visitor.has_instrumented(inputGen.target) == True:
-    F=open(filename+".cbmc.c","w")
-    if functionName == 'main':
-        for func in maniMain.otherFuncs:
-            F.write(gen.visit(func))
-    F.write(gen.visit(inputGen.target))
-    F.close()
-    visitor.observedCopy(inputGen.target)
-    F=open(filename+".test.c","w")
-    if functionName == 'main':
-        for func in maniMain.otherFuncs:
-            F.write(gen.visit(func))
-    F.write(gen.visit(inputGen.target))
-    F.close()
-else:
-    print("Error")
+F=open(filename+".ori.c","w")
+for func in maniMain.otherFuncs:
+    F.write(gen.visit(func))
+F.write(gen.visit(inputGen.target))
+F.close()
+
+visitor.instrument(inputGen.target)
+F=open(filename+".cbmc.c","w")
+for func in maniMain.otherFuncs:
+    F.write(gen.visit(func))
+F.write(gen.visit(inputGen.target))
+F.close()
