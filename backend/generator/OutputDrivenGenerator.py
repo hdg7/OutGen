@@ -144,45 +144,45 @@ class OutputDrivenGenerator(InputGenerator):
             for var in self.varNames:
                 self.s.add(eval("instVar_c"+str(i)+"==sub(instVar_a"+str(i)+"& _start__" + str(var) + "_0_1(),ctx=local_ctx)",self.dicti))
         while (self.s.check() == sat and len(innerSols)<total):
-            out=self.s.model()
-            self.dicti['out']=out
-            try:
-                inputVal=[]
-                for pos,var in enumerate(self.varNames):
-                    if self.varTypes[pos]=="int":
-                        inputVal.append(sol[self.dicti['_start__'+str(var)+'_0_1']].as_signed_long())
-                    elif self.varTypes[pos]=="float" or self.varTypes[pos]=="double":
-                        if str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="oo":
-                            inputVal.append('INFINITY')
-                        elif str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="+oo":
-                            inputVal.append('INFINITY')
-                        elif str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="-oo":
-                            inputVal.append('-INFINITY')
-                        elif str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="NaN":
-                            inputVal.append('void')
-                        else:
-                            inputVal.append(eval(str(sol[self.dicti['_start__'+str(var)+'_0_1']])))
-                if self.varTypes[self.outTypeIndex]=="int":
-                    outputVal=out[self.dicti['_start____out_var_0_1']].as_signed_long()
+            sol=self.s.model()
+            print("Generated Out:")
+            print(sol)
+            self.dicti['sol']=sol
+            inputVal=[]
+            for pos,var in enumerate(self.varNames):
+                if self.varTypes[pos]=="int":
+                    inputVal.append(sol[self.dicti['_start__'+str(var)+'_0_1']].as_signed_long())
                 elif self.varTypes[pos]=="float" or self.varTypes[pos]=="double":
-                    if str(sol[self.dicti['_start____out_var_0_1']])=="oo":
-                        outputVal='INFINITY'
-                    elif str(sol[self.dicti['_start____out_var_0_1']])=="+oo":
-                        outputVal='INFINITY'
-                    elif str(sol[self.dicti['_start____out_var_0_1']])=="-oo":
-                        outputVal='-INFINITY'
-                    elif str(sol[self.dicti['_start____out_var_0_1']])=="NaN":
-                        outputVal='void'
+                    if str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="oo":
+                        inputVal.append('INFINITY')
+                    elif str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="+oo":
+                        inputVal.append('INFINITY')
+                    elif str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="-oo":
+                        inputVal.append('-INFINITY')
+                    elif str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="NaN":
+                        inputVal.append('void')
                     else:
-                        outputVal=eval(str(sol[self.dicti['_start__'+str(var)+'_0_1']]))
-                innerSols.append((inputVal,outputVal))
+                        inputVal.append(eval(str(sol[self.dicti['_start__'+str(var)+'_0_1']])))
+            if self.varTypes[self.outTypeIndex]=="int":
+                outputVal=sol[self.dicti['_start____out_var_0_1']].as_signed_long()
+            elif self.varTypes[pos]=="float" or self.varTypes[pos]=="double":
+                if str(sol[self.dicti['_start____out_var_0_1']])=="oo":
+                    outputVal='INFINITY'
+                elif str(sol[self.dicti['_start____out_var_0_1']])=="+oo":
+                    outputVal='INFINITY'
+                elif str(sol[self.dicti['_start____out_var_0_1']])=="-oo":
+                    outputVal='-INFINITY'
+                elif str(sol[self.dicti['_start____out_var_0_1']])=="NaN":
+                    outputVal='void'
+                else:
+                    outputVal=eval(str(sol[self.dicti['_start__'+str(var)+'_0_1']]))
+            innerSols.append((inputVal,outputVal))
 #                express=['_start__'+str(var)+'_0_1()!=out[_start__'+str(var)+'_0_1]' for var in self.varNames]
 #                express="Or("+",".join(express)+")"
 #                self.s.add(eval(express,self.dicti))
-            except Exception:
-                print("Empty out")
-                print(self.varNames)
-                print(out)
+            #print("Empty out")
+            #print(self.varNames)
+            #print(sol)
         self.s.pop()
         if(len(innerSols)>0):
             inputVal,outputVal=innerSols[random.randint(0,len(innerSols)-1)]

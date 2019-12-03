@@ -10,6 +10,7 @@ import backend.generator.InputGenerator as InputGenerator
 import backend.support.functions as functions
 import backend.evaluators.UniformComparator as UniformComparator
 import backend.visitors.cVisitors.manipulateMain as manipulateMain
+import backend.visitors.cVisitors.manipulateFunc as manipulateFunc
 from pycparser import parse_file,c_generator
 
 filename=sys.argv[1]
@@ -29,6 +30,8 @@ if functionName == 'main':
     F.close()
     filename=filename+".pre.c"
     functionName='mainFake'
+else:
+    maniMain=manipulateFunc.FuncManipulator(filename,functionName)
 print(filename)
 print(functionName)
 

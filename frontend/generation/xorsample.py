@@ -15,7 +15,7 @@ def generate(parameters):
     genera=genOut.OutputDrivenGenerator(parameters["filename"],parameters["functionName"],parameters["fileZ3"])
     inputs=[]
     while len(inputs) <  parameters["totalInputs"]:
-        inputVal,outVal=genera.generateInputDiv(2,10)
+        inputVal,outVal=genera.generateInputDiv(3,10)
         if(inputVal != [] and inputVal != None):
             inputs.append(inputVal)
     return inputs

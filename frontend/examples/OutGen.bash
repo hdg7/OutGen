@@ -34,15 +34,15 @@ python3 $DFT_HOME/frontend/preprocessing/prepro.py $NAME.pre.c $FUNC
 if [ "$FUNC" == "main" ]; then
     FUNC=mainFake
 fi
-timeout 10 cbmc $NAME.pre.c.pre.c.cbmc.c --unwind 5 --function $FUNC --z3 --outfile $NAME.z3
+timeout 10 cbmc $NAME.pre.c.cbmc.c --unwind 5 --function $FUNC --z3 --outfile $NAME.z3
 if [ -s $NAME.z3 ]
 then
     rm *cov.c
     cat $NAME.z3 | sed -n '/(check-sat)/q;p' | sed 's/^;.*//g' | tr ':!@;!#&' '_______' | tail -n +5 > $NAME.clean.z3
-    python3 $DFT_HOME/frontend/generation/gen.py outgen  $NAME.pre.c.pre.c.cbmc.c  $NAME.pre.c.pre.c.ori.c $FUNC $INPUTS $NAME.clean.z3
+    python3 $DFT_HOME/frontend/generation/gen.py outgen  $NAME.pre.c.cbmc.c  $NAME.pre.c.ori.c $FUNC $INPUTS $NAME.clean.z3
     #check from this!
-    python3 $DFT_HOME/frontend/execution/set.inputs.py sem  $NAME.pre.c.pre.c.ori.c $FUNC $NAME.pre.c.pre.c.ori.c.inputs $INPUTS $RANDOM  
-    cat $NAME.header $TESTFILE.cov.c > finalTest.c
+    python3 $DFT_HOME/frontend/execution/set.inputs.py sem  $NAME.pre.c.ori.c $FUNC $NAME.pre.c.cbmc.c.inputs $INPUTS $RANDOM  
+    cat $NAME.header  $NAME.pre.c.ori.c.cov.c > finalTest.c
     gcc -fprofile-arcs -ftest-coverage -lm finalTest.c
     ./a.out 2>&1 >/dev/null | sed 's/]]/ /g' | tr ' ' '\n' | grep REACHED | wc -l > count.txt
     gcov -fb finalTest.c > coverage.txt
