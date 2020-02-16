@@ -20,15 +20,17 @@ class OutputDrivenGenerator(InputGenerator):
         self.dicti={}
         self.outTypeIndex=self.varNames.index('__out_var')
         self.varNames.remove('__out_var')
+        self.last=0
         for pos,var in  enumerate(self.varNames):
             if self.varTypes[pos]=="int":            
-                self.dicti["_start__"+str(var)+"_0_1"]=eval('Function("'+'_start__'+str(var)+'_0_1",BitVecSort(32,self.ctx))')
+                self.dicti["symex__io__"+str(pos)]=eval('Function("'+'symex__io__'+str(pos)+'",BitVecSort(32,self.ctx))')
             elif self.varTypes[pos]=="float" or  self.varTypes[pos]=="double":
-                self.dicti["_start__"+str(var)+"_0_1"]=eval('Function("'+'_start__'+str(var)+'_0_1",FloatDouble(self.ctx))')
+                self.dicti["symex__io__"+str(pos)]=eval('Function("'+'symex__io__'+str(pos)+'",FloatDouble(self.ctx))')
+            self.last=pos+1
         if self.varTypes[self.outTypeIndex]=="int":
-            self.dicti["_start____out_var_0_1"]=eval('Function("_start____out_var_0_1",BitVecSort(32,self.ctx))')
+            self.dicti["symex__io__"+str(self.last)]=eval('Function("'+'symex__io__'+str(self.last)+'",BitVecSort(32,self.ctx))')
         elif self.varTypes[self.outTypeIndex]=="float" or  self.varTypes[self.outTypeIndex]=="double":
-            self.dicti["_start____out_var_0_1"]=eval('Function("_start____out_var_0_1",FloatDouble(self.ctx))')
+            self.dicti["symex__io__"+str(self.last)]=eval('Function("'+'symex__io__'+str(self.last)+'",FloatDouble(self.ctx))')
         self.dicti.update(globals())
 
         
@@ -73,9 +75,9 @@ class OutputDrivenGenerator(InputGenerator):
             self.s.add(eval("instVar_a"+str(i)+"==randint(0,pow(2,"+str(32)+"))",self.dicti))
             self.s.add(eval("instVar_c"+str(i)+"==randint(0,1)",self.dicti))
             if self.varTypes[self.outTypeIndex]=="int":
-                self.s.add(eval("instVar_c"+str(i)+"==sub(instVar_a"+str(i)+"& _start____out_var_0_1(),ctx=local_ctx)",self.dicti))
+                self.s.add(eval("instVar_c"+str(i)+"==sub(instVar_a"+str(i)+"& "+"symex__io__"+str(self.last)+"(),ctx=local_ctx)",self.dicti))
             elif self.varTypes[self.outTypeIndex] in ["float","double"]:
-                self.s.add(eval("instVar_c"+str(i)+"==sub(instVar_a"+str(i)+"& fpToUBV(RTZ(), _start____out_var_0_1() , BitVecSort(32,ctx=local_ctx),ctx=local_ctx),ctx=local_ctx)",self.dicti))
+                self.s.add(eval("instVar_c"+str(i)+"==sub(instVar_a"+str(i)+"& fpToUBV(RTZ(), "+"symex__io__"+str(self.last)+"() , BitVecSort(32,ctx=local_ctx),ctx=local_ctx),ctx=local_ctx)",self.dicti))
         while (self.s.check() == sat and len(innerSols)<total):
             out=self.s.model()
             print(out)
@@ -87,38 +89,40 @@ class OutputDrivenGenerator(InputGenerator):
                 print(self.varTypes[pos])
                 print(var)
                 if self.varTypes[pos]=="int":
-                    inputVal.append(out[self.dicti['_start__'+str(var)+'_0_1']].as_signed_long())
+                    print(var)
+                    inputVal.append(out[self.dicti["symex__io__"+str(pos)]].as_signed_long())
                 elif self.varTypes[pos]=="float" or self.varTypes[pos]=="double":
-                    if str(out[self.dicti['_start__'+str(var)+'_0_1']])=="oo":
+                    if str(out[self.dicti["symex__io__"+str(pos)]])=="oo":
                         inputVal.append('INFINITY')
-                    elif str(out[self.dicti['_start__'+str(var)+'_0_1']])=="+oo":
+                    elif str(out[self.dicti["symex__io__"+str(pos)]])=="+oo":
                         inputVal.append('INFINITY')
-                    elif str(out[self.dicti['_start__'+str(var)+'_0_1']])=="-oo":
+                    elif str(out[self.dicti["symex__io__"+str(pos)]])=="-oo":
                         inputVal.append('-INFINITY')
-                    elif str(out[self.dicti['_start__'+str(var)+'_0_1']])=="NaN":
+                    elif str(out[self.dicti["symex__io__"+str(pos)]])=="NaN":
                         inputVal.append('void')
                     else:
-                        inputVal.append(eval(str(out[self.dicti['_start__'+str(var)+'_0_1']])))
+                        inputVal.append(eval(str(out[self.dicti["symex__io__"+str(pos)]])))
             if self.varTypes[self.outTypeIndex]=="int":
-                outputVal=out[self.dicti['_start____out_var_0_1']].as_signed_long()
+                outputVal=out[self.dicti["symex__io__"+str(self.last)]].as_signed_long()
             elif self.varTypes[self.outTypeIndex]=="float" or self.varTypes[self.outTypeIndex]=="double":
-                if str(out[self.dicti['_start____out_var_0_1']])=="oo":
+                if str(out[self.dicti["symex__io__"+str(self.last)]])=="oo":
                     outputVal='INFINITY'
-                elif str(out[self.dicti['_start____out_var_0_1']])=="+oo":
+                elif str(out[self.dicti["symex__io__"+str(self.last)]])=="+oo":
                     outputVal='INFINITY'
-                elif str(out[self.dicti['_start____out_var_0_1']])=="-oo":
+                elif str(out[self.dicti["symex__io__"+str(self.last)]])=="-oo":
                     outputVal='-INFINITY'
-                elif str(out[self.dicti['_start____out_var_0_1']])=="NaN":
+                elif str(out[self.dicti["symex__io__"+str(self.last)]])=="NaN":
                     outputVal='void'
                 else:
-                    outputVal=eval(str(out[self.dicti['_start____out_var_0_1']]))
+                    outputVal=eval(str(out[self.dicti["symex__io__"+str(self.last)]]))
             else:
                 print("Error")
                 print(self.varTypes[self.outTypeIndex])
-                print(str(out[self.dicti['_start____out_var_0_1']]))
+                print(str(out[self.dicti["symex__io__"+str(self.last)]]))
                 outputVal=None
             innerSols.append((inputVal,outputVal))
-            self.s.add(eval("_start____out_var_0_1()!=out[ _start____out_var_0_1]",self.dicti))
+            print(self.last)
+            self.s.add(eval("symex__io__"+str(self.last)+"()!=out[ symex__io__"+str(self.last)+"]",self.dicti))
 #            except Exception:
 #                print("Empty out")
 #                print(self.varNames)
@@ -141,8 +145,8 @@ class OutputDrivenGenerator(InputGenerator):
             self.dicti["instVar_c"+str(i)]=eval('BitVec("'+'instVar_c'+str(i)+'",'+str(32)+',ctx=self.ctx)')
             self.s.add(eval("instVar_a"+str(i)+"==randint(0,pow(2,"+str(32)+"))",self.dicti))
             self.s.add(eval("instVar_c"+str(i)+"==randint(0,1)",self.dicti))
-            for var in self.varNames:
-                self.s.add(eval("instVar_c"+str(i)+"==sub(instVar_a"+str(i)+"& _start__" + str(var) + "_0_1(),ctx=local_ctx)",self.dicti))
+            for pos,var in enumerate(self.varNames):
+                self.s.add(eval("instVar_c"+str(i)+"==sub(instVar_a"+str(i)+"& symex__io__"+str(pos) + "(),ctx=local_ctx)",self.dicti))
         while (self.s.check() == sat and len(innerSols)<total):
             sol=self.s.model()
             print("Generated Out:")
@@ -151,31 +155,31 @@ class OutputDrivenGenerator(InputGenerator):
             inputVal=[]
             for pos,var in enumerate(self.varNames):
                 if self.varTypes[pos]=="int":
-                    inputVal.append(sol[self.dicti['_start__'+str(var)+'_0_1']].as_signed_long())
+                    inputVal.append(sol[self.dicti['symex__io__'+str(pos)]].as_signed_long())
                 elif self.varTypes[pos]=="float" or self.varTypes[pos]=="double":
-                    if str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="oo":
+                    if str(sol[self.dicti['symex__io__'+str(pos)]])=="oo":
                         inputVal.append('INFINITY')
-                    elif str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="+oo":
+                    elif str(sol[self.dicti['symex__io__'+str(pos)]])=="+oo":
                         inputVal.append('INFINITY')
-                    elif str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="-oo":
+                    elif str(sol[self.dicti['symex__io__'+str(pos)]])=="-oo":
                         inputVal.append('-INFINITY')
-                    elif str(sol[self.dicti['_start__'+str(var)+'_0_1']])=="NaN":
+                    elif str(sol[self.dicti['symex__io__'+str(pos)]])=="NaN":
                         inputVal.append('void')
                     else:
-                        inputVal.append(eval(str(sol[self.dicti['_start__'+str(var)+'_0_1']])))
+                        inputVal.append(eval(str(sol[self.dicti['symex__io__'+str(self.pos)]])))
             if self.varTypes[self.outTypeIndex]=="int":
-                outputVal=sol[self.dicti['_start____out_var_0_1']].as_signed_long()
+                outputVal=sol[self.dicti['symex__io__'+str(self.last)]].as_signed_long()
             elif self.varTypes[pos]=="float" or self.varTypes[pos]=="double":
-                if str(sol[self.dicti['_start____out_var_0_1']])=="oo":
+                if str(sol[self.dicti['symex__io__'+str(self.last)]])=="oo":
                     outputVal='INFINITY'
-                elif str(sol[self.dicti['_start____out_var_0_1']])=="+oo":
+                elif str(sol[self.dicti['symex__io__'+str(self.last)]])=="+oo":
                     outputVal='INFINITY'
-                elif str(sol[self.dicti['_start____out_var_0_1']])=="-oo":
+                elif str(sol[self.dicti['symex__io__'+str(self.last)]])=="-oo":
                     outputVal='-INFINITY'
-                elif str(sol[self.dicti['_start____out_var_0_1']])=="NaN":
+                elif str(sol[self.dicti['symex__io__'+str(self.last)]])=="NaN":
                     outputVal='void'
                 else:
-                    outputVal=eval(str(sol[self.dicti['_start__'+str(var)+'_0_1']]))
+                    outputVal=eval(str(sol[self.dicti['symex__io__'+str(self.last)]]))
             innerSols.append((inputVal,outputVal))
 #                express=['_start__'+str(var)+'_0_1()!=out[_start__'+str(var)+'_0_1]' for var in self.varNames]
 #                express="Or("+",".join(express)+")"
