@@ -17,7 +17,7 @@ typeExternal=["cavm"]
 
 moduleClassMap={
     "dft":"DFTSPEA2Generator",
-    "rand":"RandomGenerator",
+    "rand":"RandomInputGenerator",
     "greedyPareto":"DFTGreedyGenerator",
     "randPareto":"DFTRandomGenerator",
     "outgen":"DFTRandomGenerator",
